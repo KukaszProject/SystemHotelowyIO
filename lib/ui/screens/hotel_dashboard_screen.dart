@@ -1133,3 +1133,153 @@ class _BookingCard extends StatelessWidget {
     );
   }
 }
+
+class _RoomOfferCard extends StatelessWidget {
+  const _RoomOfferCard({
+    required this.room,
+    required this.available,
+    required this.unavailableReason,
+    required this.rating,
+    required this.role,
+    required this.onReserve,
+    required this.onStatusChanged,
+  });
+
+  final Pokoj room;
+  final bool available;
+  final String? unavailableReason;
+  final _RoomRating rating;
+  final _AccountRole role;
+  final VoidCallback onReserve;
+  final ValueChanged<StatusPokoju> onStatusChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 92,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: _roomVisualColors(room.nrPokoju),
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Stack(
+              children: [
+                Positioned(
+                  right: 16,
+                  bottom: 12,
+                  child: Icon(
+                    Icons.king_bed_rounded,
+                    color: Colors.white.withValues(alpha: 0.82),
+                    size: 54,
+                  ),
+                ),
+                Positioned(
+                  left: 16,
+                  top: 14,
+                  child: _StatusPill(
+                    text: available
+                        ? 'Dostepny'
+                        : unavailableReason ??
+                              _roomStatusLabel(room.statusPokoju),
+                    color: available
+                        ? const Color(0xFF4E7B63)
+                        : const Color(0xFF8B4C4C),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Pokoj ${room.nrPokoju}',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF3A2922),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 7,
+                  children: [
+                    _IconText(
+                      icon: Icons.group_rounded,
+                      text: '${room.pojemnoscPokoju} os.',
+                    ),
+                    _IconText(
+                      icon: Icons.nights_stay_rounded,
+                      text: '${_formatMoney(room.cenaZaDobe)} / noc',
+                    ),
+                    _IconText(
+                      icon: Icons.star_rounded,
+                      text: rating.count == 0
+                          ? 'Brak ocen'
+                          : '${rating.average.toStringAsFixed(1)}/5 (${rating.count})',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                if (role == _AccountRole.gosc)
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: available ? onReserve : null,
+                      icon: const Icon(Icons.calendar_month_rounded),
+                      label: Text(
+                        available
+                            ? 'Wybierz pokoj'
+                            : unavailableReason ?? 'Niedostepny',
+                      ),
+                    ),
+                  )
+                else
+                  _RoomStatusSelector(
+                    status: room.statusPokoju,
+                    onChanged: onStatusChanged,
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RoomStatusSelector extends StatelessWidget {
+  const _RoomStatusSelector({
+    required this.status,
+    required this.onChanged,
+  });
+
+  final StatusPokoju status;
+  final ValueChanged<StatusPokoju> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: StatusPokoju.values.map((value) {
+        final selected = value == status;
+        return ChoiceChip(
+          label: Text(_roomStatusLabel(value)),
+          selected: selected,
+          onSelected: selected ? null : (_) => onChanged(value),
+        );
+      }).toList(),
+    );
+  }
+}

@@ -28,14 +28,51 @@ class SerwisRezerwacji {
     required DateTime dataPoczatkowa,
     required DateTime dataKoncowa,
   }) {
-       throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    final pokoj = _znajdzPokoj(idPokoju);
+    final gosc = _znajdzGoscia(idGoscia);
+    if (_czyDataWPrzeszlosci(dataPoczatkowa)) {
+      throw StateError('Nie mozna zarezerwowac pokoju w przeszlosci.');
+    }
+
+    if (!pokoj.czyDostepny(dataPoczatkowa, dataKoncowa)) {
+      throw StateError('Pokoj nie jest dostepny w podanym terminie.');
+    }
+
+    final rezerwacja = Rezerwacja(
+      idRezerwacji: _nastepneIdRezerwacji++,
+      dataPoczatkowa: dataPoczatkowa,
+      dataKoncowa: dataKoncowa,
+      calkowitaCena: pokoj.obliczKoszt(
+        dataKoncowa.difference(dataPoczatkowa).inDays,
+      ),
+      status: StatusRezerwacji.potwierdzona,
+      gosc: gosc,
+      pokoje: [pokoj],
+    );
+
+    _rezerwacje.add(rezerwacja);
+    pokoj.rezerwacje.add(rezerwacja);
+    pokoj.zmienStatus(StatusPokoju.zajety);
+    serwisEmail.wyslijPotwierdzenie(
+      gosc?.email ?? _tymczasowyEmailGoscia(idGoscia),
+      rezerwacja.idRezerwacji,
+    );
+
+    return rezerwacja;
   }
 
   bool anulujRezerwacje({
     required int idRezerwacji,
     required String powod,
   }) {
-         throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    final dane = _znajdzRezerwacjeZPokojem(idRezerwacji);
+    if (dane == null) {
+      return false;
+    }
+
+    dane.rezerwacja.anulujRezerwacje();
+    dane.pokoj.zmienStatus(StatusPokoju.dostepny);
+    return true;
   }
 
   bool modyfikujDatyRezerwacji({
@@ -43,7 +80,47 @@ class SerwisRezerwacji {
     required DateTime nowaDataPoczatkowa,
     required DateTime nowaDataKoncowa,
   }) {
-     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    if (!nowaDataKoncowa.isAfter(nowaDataPoczatkowa)) {
+      return false;
+    }
+    if (_czyDataWPrzeszlosci(nowaDataPoczatkowa)) {
+      return false;
+    }
+
+    final dane = _znajdzRezerwacjeZPokojem(idRezerwacji);
+    if (dane == null) {
+      return false;
+    }
+
+    final koliduje = dane.pokoj.rezerwacje.any((rezerwacja) {
+      if (rezerwacja.idRezerwacji == idRezerwacji ||
+          rezerwacja.status == StatusRezerwacji.anulowana) {
+        return false;
+      }
+
+      return _terminySiePokrywaja(
+        nowaDataPoczatkowa,
+        nowaDataKoncowa,
+        rezerwacja.dataPoczatkowa,
+        rezerwacja.dataKoncowa,
+      );
+    });
+
+    if (koliduje) {
+      return false;
+    }
+
+    final wynik = dane.rezerwacja.modyfikujDaty(
+      nowaDataPoczatkowa,
+      nowaDataKoncowa,
+    );
+    if (wynik) {
+      dane.rezerwacja.calkowitaCena = dane.pokoj.obliczKoszt(
+        dane.rezerwacja.obliczDlugoscPobytu(),
+      );
+    }
+
+    return wynik;
   }
 
   List<Pokoj> znajdzDostepnePokoje({
@@ -51,15 +128,29 @@ class SerwisRezerwacji {
     required DateTime dataKoncowa,
     required int liczbaGosci,
   }) {
-         throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    return _pokoje.where((pokoj) {
+      return pokoj.pojemnoscPokoju >= liczbaGosci &&
+          pokoj.czyDostepny(dataPoczatkowa, dataKoncowa);
+    }).toList();
   }
 
   Pokoj _znajdzPokoj(int idPokoju) {
-         throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    return _pokoje.firstWhere(
+      (pokoj) => pokoj.idPokoju == idPokoju,
+      orElse: () => throw StateError('Nie znaleziono pokoju.'),
+    );
   }
 
   _RezerwacjaZPokojem? _znajdzRezerwacjeZPokojem(int idRezerwacji) {
-         throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    for (final pokoj in _pokoje) {
+      for (final rezerwacja in pokoj.rezerwacje) {
+        if (rezerwacja.idRezerwacji == idRezerwacji) {
+          return _RezerwacjaZPokojem(rezerwacja: rezerwacja, pokoj: pokoj);
+        }
+      }
+    }
+
+    return null;
   }
 
   bool _terminySiePokrywaja(
@@ -68,24 +159,34 @@ class SerwisRezerwacji {
     DateTime poczatekB,
     DateTime koniecB,
   ) {
-     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    return poczatekA.isBefore(koniecB) && koniecA.isAfter(poczatekB);
   }
 
   bool _czyDataWPrzeszlosci(DateTime data) {
     final dzisiaj = _dzisiejszaData;
-        throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    if (dzisiaj == null) {
+      return false;
+    }
+
+    return _tylkoData(data).isBefore(_tylkoData(dzisiaj));
   }
 
   DateTime _tylkoData(DateTime data) {
-         throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    return DateTime(data.year, data.month, data.day);
   }
 
   Gosc? _znajdzGoscia(int idGoscia) {
-        throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    for (final gosc in _goscie) {
+      if (gosc.idUzytkownika == idGoscia) {
+        return gosc;
+      }
+    }
+
+    return null;
   }
 
   String _tymczasowyEmailGoscia(int idGoscia) {
-      throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    return 'gosc$idGoscia@example.local';
   }
 }
 

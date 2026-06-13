@@ -6,8 +6,11 @@ class OcenaPobytu {
     required this.dataDodania,
   }) {
     if (liczbaGwiazdek < 1 || liczbaGwiazdek > 5) {
-       throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
-
+      throw ArgumentError.value(
+        liczbaGwiazdek,
+        'liczbaGwiazdek',
+        'Ocena musi byc w zakresie 1-5.',
+      );
     }
   }
 
@@ -17,7 +20,6 @@ class OcenaPobytu {
   final DateTime dataDodania;
 
   int getLiczbaGwiazdek() {
-       throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
-
+    return liczbaGwiazdek;
   }
 }

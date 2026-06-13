@@ -20,20 +20,32 @@ class Pokoj {
   final List<Rezerwacja> rezerwacje;
 
   double obliczKoszt(int iloscDni) {
-     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    return cenaZaDobe * iloscDni;
   }
 
   void zmienStatus(StatusPokoju nowyStatus) {
-     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    statusPokoju = nowyStatus;
   }
 
   bool czyDostepny(DateTime dataPoczatkowa, DateTime dataKoncowa) {
-     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    if (statusPokoju == StatusPokoju.wylaczony ||
+        statusPokoju == StatusPokoju.czyszczenie ||
+        !dataKoncowa.isAfter(dataPoczatkowa)) {
+      return false;
     }
 
+    return rezerwacje.where(_blokujeDostepnosc).every((rezerwacja) {
+      return !_terminySiePokrywaja(
+        dataPoczatkowa,
+        dataKoncowa,
+        rezerwacja.dataPoczatkowa,
+        rezerwacja.dataKoncowa,
+      );
+    });
+  }
 
   bool _blokujeDostepnosc(Rezerwacja rezerwacja) {
-     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    return rezerwacja.status != StatusRezerwacji.anulowana;
   }
 
   bool _terminySiePokrywaja(
@@ -42,6 +54,6 @@ class Pokoj {
     DateTime poczatekB,
     DateTime koniecB,
   ) {
-     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    return poczatekA.isBefore(koniecB) && koniecA.isAfter(poczatekB);
   }
 }

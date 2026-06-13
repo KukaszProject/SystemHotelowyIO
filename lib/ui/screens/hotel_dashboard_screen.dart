@@ -472,3 +472,197 @@ class _HomePage extends StatelessWidget {
     );
   }
 }
+
+class _ReceptionDashboardPage extends StatelessWidget {
+  const _ReceptionDashboardPage({
+    required this.controller,
+    required this.onOpenReservations,
+    required this.onOpenRooms,
+  });
+
+  final HotelController controller;
+  final VoidCallback onOpenReservations;
+  final VoidCallback onOpenRooms;
+
+  @override
+  Widget build(BuildContext context) {
+    final reservations = controller.rezerwacje;
+    final rooms = controller.repozytorium.pokoje;
+    final activeReservations = reservations
+        .where(
+          (reservation) => reservation.status != StatusRezerwacji.anulowana,
+        )
+        .length;
+    final cleaningRooms = rooms
+        .where((room) => room.statusPokoju == StatusPokoju.czyszczenie)
+        .length;
+
+    return _Page(
+      title: 'Panel recepcji',
+      subtitle: 'Obsluga rezerwacji i statusow pokoi',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GridView(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 240,
+              mainAxisExtent: 128,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+            ),
+            children: [
+              _MetricCard(
+                icon: Icons.event_available_rounded,
+                label: 'Rezerwacje',
+                value: '$activeReservations',
+              ),
+              _MetricCard(
+                icon: Icons.meeting_room_rounded,
+                label: 'Pokoje',
+                value: '${rooms.length}',
+              ),
+              _MetricCard(
+                icon: Icons.cleaning_services_rounded,
+                label: 'Do sprzatania',
+                value: '$cleaningRooms',
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _SectionTitle(title: 'Zadania recepcji'),
+          const SizedBox(height: 12),
+          _ReceptionActionCard(
+            icon: Icons.edit_calendar_rounded,
+            title: 'Zarzadzaj rezerwacjami',
+            subtitle: 'Modyfikuj daty rezerwacji zgodnie z diagramem.',
+            buttonLabel: 'Otworz rezerwacje',
+            onPressed: onOpenReservations,
+          ),
+          const SizedBox(height: 12),
+          _ReceptionActionCard(
+            icon: Icons.meeting_room_rounded,
+            title: 'Zarzadzanie pokojami',
+            subtitle:
+                'Zmieniaj status: dostepny, zajety, czyszczenie, wylaczony.',
+            buttonLabel: 'Otworz pokoje',
+            onPressed: onOpenRooms,
+          ),
+          const SizedBox(height: 20),
+          _SectionTitle(title: 'Opinie pokoi'),
+          const SizedBox(height: 12),
+          _RoomReviewsOverview(
+            rooms: rooms,
+            reservations: reservations,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MetricCard extends StatelessWidget {
+  const _MetricCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: const Color(0xFF6F8F83)),
+            const Spacer(),
+            Text(
+              value,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF3A2922),
+              ),
+            ),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: const Color(0xFF75665B),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReceptionActionCard extends StatelessWidget {
+  const _ReceptionActionCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.buttonLabel,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String buttonLabel;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: const Color(0xFFECE1D4),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: const Color(0xFF5B4033)),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: const Color(0xFF75665B),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            OutlinedButton(
+              onPressed: onPressed,
+              child: Text(buttonLabel),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

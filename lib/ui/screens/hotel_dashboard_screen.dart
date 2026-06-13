@@ -1478,3 +1478,401 @@ class _ReservationCard extends StatelessWidget {
     );
   }
 }
+
+class _ReservationHeader extends StatelessWidget {
+  const _ReservationHeader({required this.reservation});
+
+  final Rezerwacja reservation;
+
+  @override
+  Widget build(BuildContext context) {
+    final roomNumbers = reservation.pokoje
+        .map((room) => room.nrPokoju)
+        .join(', ');
+    final payment = reservation.platnosc;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: const Color(0xFFECE1D4),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Icon(Icons.hotel_rounded, color: Color(0xFF5B4033)),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    'Rezerwacja #${reservation.idRezerwacji}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  _StatusPill(
+                    text: _reservationStatusLabel(reservation.status),
+                    color: _reservationStatusColor(reservation.status),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '${reservation.gosc?.imie ?? 'Gosc'} ${reservation.gosc?.nazwisko ?? ''} · pokoj $roomNumbers',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 14,
+                runSpacing: 7,
+                children: [
+                  _IconText(
+                    icon: Icons.calendar_month_rounded,
+                    text:
+                        '${_formatDate(reservation.dataPoczatkowa)} - ${_formatDate(reservation.dataKoncowa)}',
+                  ),
+                  _IconText(
+                    icon: Icons.nights_stay_rounded,
+                    text: '${reservation.obliczDlugoscPobytu()} noce',
+                  ),
+                  _IconText(
+                    icon: Icons.payments_rounded,
+                    text: _formatMoney(reservation.calkowitaCena),
+                  ),
+                  _IconText(
+                    icon: payment?.czyPoprawna == true
+                        ? Icons.verified_rounded
+                        : Icons.hourglass_bottom_rounded,
+                    text: payment == null
+                        ? 'Nieoplacona'
+                        : payment.czyPoprawna
+                        ? 'Oplacona'
+                        : 'Odrzucona',
+                  ),
+                  if (reservation.kodPin != null)
+                    _IconText(
+                      icon: Icons.pin_rounded,
+                      text: 'PIN ${reservation.kodPin}',
+                    ),
+                  if (reservation.ocenaPobytu != null)
+                    _IconText(
+                      icon: Icons.star_rounded,
+                      text: '${reservation.ocenaPobytu!.liczbaGwiazdek}/5',
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ReservationSheet extends StatefulWidget {
+  const _ReservationSheet({
+    required this.guest,
+    required this.rooms,
+    required this.initialStartDate,
+    required this.initialEndDate,
+    this.initialRoom,
+  });
+
+  final Gosc guest;
+  final List<Pokoj> rooms;
+  final Pokoj? initialRoom;
+  final DateTime initialStartDate;
+  final DateTime initialEndDate;
+
+  @override
+  State<_ReservationSheet> createState() => _ReservationSheetState();
+}
+
+class _ReservationSheetState extends State<_ReservationSheet> {
+  late Pokoj _room = widget.initialRoom ?? widget.rooms.first;
+  late DateTime _startDate = widget.initialStartDate;
+  late DateTime _endDate = widget.initialEndDate;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Sheet(
+      title: 'Rezerwacja pokoju',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _SelectedGuestField(guest: widget.guest),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<Pokoj>(
+            initialValue: _room,
+            decoration: const InputDecoration(
+              labelText: 'Pokoj',
+              prefixIcon: Icon(Icons.king_bed_rounded),
+            ),
+            items: widget.rooms
+                .map(
+                  (room) => DropdownMenuItem(
+                    value: room,
+                    child: Text('Pokoj ${room.nrPokoju}'),
+                  ),
+                )
+                .toList(),
+            onChanged: (room) {
+              if (room != null) {
+                setState(() => _room = room);
+              }
+            },
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _DateButton(
+                  label: 'Od',
+                  date: _startDate,
+                  onPicked: (date) => setState(() => _startDate = date),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _DateButton(
+                  label: 'Do',
+                  date: _endDate,
+                  onPicked: (date) => setState(() => _endDate = date),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () {
+                Navigator.pop(
+                  context,
+                  _ReservationDraft(
+                    guest: widget.guest,
+                    room: _room,
+                    startDate: _startDate,
+                    endDate: _endDate,
+                  ),
+                );
+              },
+              child: const Text('Potwierdz rezerwacje'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SelectedGuestField extends StatelessWidget {
+  const _SelectedGuestField({required this.guest});
+
+  final Gosc guest;
+
+  @override
+  Widget build(BuildContext context) {
+    return InputDecorator(
+      decoration: const InputDecoration(
+        labelText: 'Gosc',
+        prefixIcon: Icon(Icons.person_rounded),
+      ),
+      child: Text(
+        '${guest.imie} ${guest.nazwisko}',
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+class _DateEditSheet extends StatefulWidget {
+  const _DateEditSheet({
+    required this.startDate,
+    required this.endDate,
+  });
+
+  final DateTime startDate;
+  final DateTime endDate;
+
+  @override
+  State<_DateEditSheet> createState() => _DateEditSheetState();
+}
+
+class _DateEditSheetState extends State<_DateEditSheet> {
+  late DateTime _startDate = widget.startDate;
+  late DateTime _endDate = widget.endDate;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Sheet(
+      title: 'Zmien termin',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _DateButton(
+                  label: 'Od',
+                  date: _startDate,
+                  onPicked: (date) => setState(() => _startDate = date),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _DateButton(
+                  label: 'Do',
+                  date: _endDate,
+                  onPicked: (date) => setState(() => _endDate = date),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () {
+                Navigator.pop(
+                  context,
+                  _DateRangeDraft(startDate: _startDate, endDate: _endDate),
+                );
+              },
+              child: const Text('Zapisz termin'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReviewSheet extends StatefulWidget {
+  const _ReviewSheet();
+
+  @override
+  State<_ReviewSheet> createState() => _ReviewSheetState();
+}
+
+class _ReviewSheetState extends State<_ReviewSheet> {
+  int _stars = 5;
+  final _commentController = TextEditingController(text: 'Bardzo dobry pobyt');
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _Sheet(
+      title: 'Ocena pobytu',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          DropdownButtonFormField<int>(
+            initialValue: _stars,
+            decoration: const InputDecoration(
+              labelText: 'Gwiazdki',
+              prefixIcon: Icon(Icons.star_rounded),
+            ),
+            items: [1, 2, 3, 4, 5]
+                .map(
+                  (stars) => DropdownMenuItem(
+                    value: stars,
+                    child: Text('$stars'),
+                  ),
+                )
+                .toList(),
+            onChanged: (stars) {
+              if (stars != null) {
+                setState(() => _stars = stars);
+              }
+            },
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _commentController,
+            decoration: const InputDecoration(
+              labelText: 'Komentarz',
+              prefixIcon: Icon(Icons.notes_rounded),
+            ),
+          ),
+          const SizedBox(height: 18),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () {
+                Navigator.pop(
+                  context,
+                  _ReviewDraft(stars: _stars, comment: _commentController.text),
+                );
+              },
+              child: const Text('Dodaj ocene'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Sheet extends StatelessWidget {
+  const _Sheet({
+    required this.title,
+    required this.child,
+  });
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 18,
+        bottom: MediaQuery.viewInsetsOf(context).bottom + 20,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 38,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFD6C8BA),
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+          ),
+          const SizedBox(height: 18),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF3A2922),
+            ),
+          ),
+          const SizedBox(height: 16),
+          child,
+        ],
+      ),
+    );
+  }
+}

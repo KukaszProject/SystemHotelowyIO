@@ -30,22 +30,29 @@ class Rezerwacja {
   String? kodPin;
 
   void potwierdzRezerwacje() {
-     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    status = StatusRezerwacji.potwierdzona;
   }
 
   void anulujRezerwacje() {
-     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    status = StatusRezerwacji.anulowana;
   }
 
   bool modyfikujDaty(DateTime nDataPoczatkowa, DateTime nDataKoncowa) {
-     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    if (!nDataKoncowa.isAfter(nDataPoczatkowa)) {
+      return false;
+    }
+
+    dataPoczatkowa = nDataPoczatkowa;
+    dataKoncowa = nDataKoncowa;
+    return true;
   }
 
   int obliczDlugoscPobytu() {
-     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    return dataKoncowa.difference(dataPoczatkowa).inDays;
   }
 
   bool dodajOcenePobytu(OcenaPobytu ocena) {
-     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    ocenaPobytu = ocena;
+    return true;
   }
 }

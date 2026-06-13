@@ -16,6 +16,12 @@ class Platnosc {
   bool czyPoprawna;
 
   bool wykonajPlatnosc() {
-       throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    if (naleznoscDoZaplaty <= 0) {
+      czyPoprawna = false;
+      return false;
     }
+
+    czyPoprawna = systemPlatnosci.przetworzPlatnosc(naleznoscDoZaplaty);
+    return czyPoprawna;
+  }
 }

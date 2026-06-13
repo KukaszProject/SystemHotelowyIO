@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:systemhotelowy/enums/status_pokoju.dart';
 import 'package:systemhotelowy/enums/status_rezerwacji.dart';
 import 'package:systemhotelowy/models/pokoj.dart';
+import 'package:systemhotelowy/models/rezerwacja.dart';
 void main() {
   group('Pokoj', () {
     test('jest dostepny gdy nie ma rezerwacji w podanym terminie', () {

@@ -1,0 +1,184 @@
+# System Hotelowy
+
+Aplikacja demonstracyjna systemu hotelowego przygotowana we Flutterze na
+potrzeby zajec projektowych. Projekt dziala lokalnie, bez backendu i bez bazy
+danych. Dane sa przechowywane w pamieci aplikacji i po ponownym uruchomieniu
+wracaja do stanu demonstracyjnego.
+
+## Cel projektu
+
+Celem projektu jest pokazanie implementacji funkcjonalnosci wynikajacych z
+diagramu klas i diagramow sekwencji:
+
+- przegladanie dostepnych pokoi,
+- tworzenie rezerwacji,
+- anulowanie rezerwacji,
+- modyfikacja dat rezerwacji,
+- platnosc za rezerwacje,
+- zameldowanie i wygenerowanie kodu PIN,
+- wymeldowanie,
+- wystawianie oceny pobytu,
+- obsluga widoku goscia i recepcjonisty.
+
+Projekt byl rozwijany zgodnie z podejsciem TDD: najpierw powstawaly testy dla
+konkretnego zachowania, nastepnie implementacja, a na koncu refaktoryzacja i
+ponowne uruchamianie testow.
+
+## Technologie
+
+- Flutter
+- Dart
+- Material Design
+- `flutter_test`
+- `flutter_lints`
+
+Aplikacja jest przygotowana jako projekt mobilny dla Androida i iOS.
+
+## Uruchomienie projektu
+
+1. Zainstaluj Flutter SDK.
+2. Wejdz do katalogu projektu.
+3. Pobierz zaleznosci:
+
+```bash
+flutter pub get
+```
+
+4. Uruchom aplikacje:
+
+```bash
+flutter run
+```
+
+5. Uruchom testy:
+
+```bash
+flutter test
+```
+
+6. Sprawdz analize statyczna:
+
+```bash
+flutter analyze
+```
+
+## Struktura projektu
+
+```text
+lib/
+  controllers/
+    hotel_controller.dart
+  data/
+    lokalne_repozytorium_hotelu.dart
+  fakes/
+    fake_serwis_email.dart
+    fake_system_otwierania_drzwi.dart
+    fake_system_platnosci.dart
+  interfaces/
+    i_serwis_email.dart
+    i_system_otwierania_drzwi.dart
+    i_system_platnosci.dart
+  models/
+    gosc.dart
+    ocena_pobytu.dart
+    platnosc.dart
+    pokoj.dart
+    recepcjonista.dart
+    rezerwacja.dart
+    uzytkownik.dart
+  services/
+    serwis_rezerwacji.dart
+    serwis_zameldowania.dart
+  ui/
+    hotel_app.dart
+    screens/
+      hotel_dashboard_screen.dart
+  main.dart
+
+test/
+  controllers/
+  fakes/
+  models/
+  services/
+  ui/
+```
+
+## Architektura
+
+Projekt ma prosta warstwowa architekture:
+
+- `models` - klasy domenowe zgodne z diagramem klas,
+- `interfaces` - interfejsy systemu email, platnosci i otwierania drzwi,
+- `fakes` - lokalne implementacje interfejsow,
+- `services` - logika przypadkow uzycia,
+- `data` - lokalne repozytorium z danymi demonstracyjnymi,
+- `controllers` - warstwa laczaca UI z logika domenowa,
+- `ui` - interfejs uzytkownika Flutter.
+
+Typowy przeplyw danych:
+
+```text
+UI -> HotelController -> Serwisy -> Modele / Interfejsy -> Fake implementacje
+```
+
+## Najwazniejsze funkcjonalnosci
+
+### Gosc hotelowy
+
+- wyszukiwanie dostepnych pokoi po zakresie dat i liczbie gosci,
+- rezerwacja pokoju,
+- platnosc za rezerwacje,
+- zameldowanie i podglad 4-cyfrowego kodu PIN,
+- wymeldowanie,
+- ocena pobytu po wymeldowaniu,
+- podglad ocen pokoi.
+
+### Recepcjonista
+
+- podglad rezerwacji,
+- modyfikacja dat rezerwacji,
+- anulowanie rezerwacji,
+- zmiana statusu pokoju,
+- podglad statusow pokoi,
+- podglad ocen wystawionych pokojom.
+
+## Zasady biznesowe
+
+- Pokoj mozna zarezerwowac tylko w poprawnym zakresie dat.
+- Nie mozna utworzyc rezerwacji w przeszlosci.
+- Anulowana rezerwacja zwalnia termin dla kolejnej osoby.
+- Pokoj zarezerwowany w jednym terminie moze byc dostepny w innym terminie.
+- Oplaconej rezerwacji nie mozna oplacic drugi raz.
+- Kod PIN sklada sie z 4 cyfr i jest generowany losowo przy rezerwacji.
+- Ocena pobytu jest mozliwa dopiero po wymeldowaniu.
+- Po wymeldowaniu rezerwacja otrzymuje status zakonczony, a pokoj przechodzi w
+  stan czyszczenia.
+
+## TDD i testy
+
+Testy obejmuja najwazniejsze elementy logiki:
+
+- modele,
+- serwisy,
+- kontroler,
+- fake implementacje,
+- podstawowe zachowania UI.
+
+W projekcie sa testowane m.in.:
+
+- dostepnosc pokoju w zakresie dat,
+- brak kolizji rezerwacji,
+- anulowanie rezerwacji,
+- walidacja dat,
+- platnosc jednokrotna,
+- generowanie PIN-u,
+- zameldowanie i wymeldowanie,
+- widoki goscia i recepcjonisty,
+- widocznosc ocen pokoi.
+
+## Uwagi
+
+Aplikacja jest projektem pokazowym. Nie laczy sie z prawdziwym systemem
+hotelowym, bramka platnosci, systemem email ani systemem zamkow. Te elementy sa
+symulowane lokalnie przez fake implementacje, aby projekt mogl dzialac bez
+backendu i bazy danych.

@@ -14,15 +14,45 @@ class SerwisZameldowania {
   final List<Pokoj> _pokoje;
 
   String przetworzZameldowanie({required int idRezerwacji}) {
-            throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    final dane = _znajdzRezerwacjeZPokojem(idRezerwacji);
+    if (dane.rezerwacja.status == StatusRezerwacji.anulowana ||
+        dane.rezerwacja.status == StatusRezerwacji.zakonczona) {
+      throw StateError('Rezerwacja nie moze zostac zameldowana.');
+    }
+
+    dane.rezerwacja.potwierdzRezerwacje();
+    dane.pokoj.zmienStatus(StatusPokoju.zajety);
+    final kodPin = dane.rezerwacja.kodPin;
+    if (kodPin == null) {
+      throw StateError('Rezerwacja nie ma przypisanego kodu PIN.');
+    }
+
+    return kodPin;
   }
 
   bool przetworzWymeldowanie({required int idRezerwacji}) {
-            throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    final dane = _znajdzRezerwacjeZPokojem(idRezerwacji);
+    if (dane.rezerwacja.status == StatusRezerwacji.anulowana ||
+        dane.rezerwacja.status == StatusRezerwacji.zakonczona) {
+      return false;
+    }
+
+    systemOtwieraniaDrzwi.dezaktywujKodPIN(dane.pokoj.nrPokoju);
+    dane.rezerwacja.status = StatusRezerwacji.zakonczona;
+    dane.pokoj.zmienStatus(StatusPokoju.czyszczenie);
+    return true;
   }
 
   _RezerwacjaZPokojem _znajdzRezerwacjeZPokojem(int idRezerwacji) {
-            throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
+    for (final pokoj in _pokoje) {
+      for (final rezerwacja in pokoj.rezerwacje) {
+        if (rezerwacja.idRezerwacji == idRezerwacji) {
+          return _RezerwacjaZPokojem(rezerwacja: rezerwacja, pokoj: pokoj);
+        }
+      }
+    }
+
+    throw StateError('Nie znaleziono rezerwacji.');
   }
 }
 

@@ -1283,3 +1283,198 @@ class _RoomStatusSelector extends StatelessWidget {
     );
   }
 }
+
+class _AccountPage extends StatelessWidget {
+  const _AccountPage({
+    required this.controller,
+    required this.role,
+    required this.activeUser,
+    required this.onRoleChanged,
+    required this.onUserChanged,
+  });
+
+  final HotelController controller;
+  final _AccountRole role;
+  final Uzytkownik activeUser;
+  final ValueChanged<_AccountRole> onRoleChanged;
+  final ValueChanged<Uzytkownik> onUserChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final users = switch (role) {
+      _AccountRole.gosc => controller.repozytorium.goscie,
+      _AccountRole.recepcjonista => controller.repozytorium.recepcjonisci,
+    };
+
+    return _Page(
+      title: 'Konto',
+      subtitle: 'Wybierz widok i uprawnienia',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Widok konta',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  SegmentedButton<_AccountRole>(
+                    segments: const [
+                      ButtonSegment(
+                        value: _AccountRole.gosc,
+                        icon: Icon(Icons.person_rounded),
+                        label: Text('Gosc hotelowy'),
+                      ),
+                      ButtonSegment(
+                        value: _AccountRole.recepcjonista,
+                        icon: Icon(Icons.badge_rounded),
+                        label: Text('Recepcjonista'),
+                      ),
+                    ],
+                    selected: {role},
+                    onSelectionChanged: (selection) {
+                      onRoleChanged(selection.first);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<Uzytkownik>(
+                    initialValue: activeUser,
+                    decoration: const InputDecoration(
+                      labelText: 'Aktywne konto',
+                      prefixIcon: Icon(Icons.account_circle_rounded),
+                    ),
+                    items: users
+                        .map(
+                          (user) => DropdownMenuItem<Uzytkownik>(
+                            value: user,
+                            child: Text('${user.imie} ${user.nazwisko}'),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (user) {
+                      if (user != null) {
+                        onUserChanged(user);
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _PermissionCard(role: role, user: activeUser),
+        ],
+      ),
+    );
+  }
+}
+
+class _StaySummaryCard extends StatelessWidget {
+  const _StaySummaryCard({required this.reservation});
+
+  final Rezerwacja reservation;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: _ReservationHeader(reservation: reservation),
+      ),
+    );
+  }
+}
+
+class _ReservationCard extends StatelessWidget {
+  const _ReservationCard({
+    required this.reservation,
+    required this.role,
+    required this.onPay,
+    required this.onCheckIn,
+    required this.onCheckOut,
+    required this.onCancel,
+    required this.onReview,
+    required this.onModifyDates,
+  });
+
+  final Rezerwacja reservation;
+  final _AccountRole role;
+  final VoidCallback onPay;
+  final VoidCallback onCheckIn;
+  final VoidCallback onCheckOut;
+  final VoidCallback onCancel;
+  final VoidCallback onReview;
+  final VoidCallback onModifyDates;
+
+  @override
+  Widget build(BuildContext context) {
+    final isPaid = reservation.platnosc?.czyPoprawna == true;
+    final isCheckedOut = reservation.status == StatusRezerwacji.zakonczona;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _ReservationHeader(reservation: reservation),
+            const Divider(height: 26),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (role == _AccountRole.gosc) ...[
+                  FilledButton.icon(
+                    onPressed: isPaid ? null : onPay,
+                    icon: Icon(
+                      isPaid
+                          ? Icons.verified_rounded
+                          : Icons.credit_card_rounded,
+                    ),
+                    label: Text(isPaid ? 'Oplacono' : 'Oplac'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: onCheckIn,
+                    icon: const Icon(Icons.key_rounded),
+                    label: const Text('PIN'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: isCheckedOut ? null : onCheckOut,
+                    icon: Icon(
+                      isCheckedOut
+                          ? Icons.verified_rounded
+                          : Icons.logout_rounded,
+                    ),
+                    label: Text(isCheckedOut ? 'Wymeldowano' : 'Wymelduj'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: isCheckedOut ? onReview : null,
+                    icon: const Icon(Icons.star_rounded),
+                    label: const Text('Ocena'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: onCancel,
+                    icon: const Icon(Icons.cancel_outlined),
+                    label: const Text('Anuluj'),
+                  ),
+                ] else
+                  OutlinedButton.icon(
+                    onPressed: onModifyDates,
+                    icon: const Icon(Icons.edit_calendar_rounded),
+                    label: const Text('Zmien daty'),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

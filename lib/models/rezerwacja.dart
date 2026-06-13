@@ -30,22 +30,22 @@ class Rezerwacja {
   String? kodPin;
 
   void potwierdzRezerwacje() {
-    throw NotImplementedError('Metoda nie została jeszcze zaimplementowana');
+     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
   }
 
   void anulujRezerwacje() {
-    throw NotImplementedError('Metoda nie została jeszcze zaimplementowana');
+     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
   }
 
   bool modyfikujDaty(DateTime nDataPoczatkowa, DateTime nDataKoncowa) {
-    throw NotImplementedError('Metoda nie została jeszcze zaimplementowana');
+     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
   }
 
   int obliczDlugoscPobytu() {
-    throw NotImplementedError('Metoda nie została jeszcze zaimplementowana');
+     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
   }
 
   bool dodajOcenePobytu(OcenaPobytu ocena) {
-    throw NotImplementedError('Metoda nie została jeszcze zaimplementowana');
+     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
   }
 }

@@ -16,6 +16,6 @@ class Platnosc {
   bool czyPoprawna;
 
   bool wykonajPlatnosc() {
-      throw NotImplementedError('Metoda nie została jeszcze zaimplementowana');
+       throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
     }
 }

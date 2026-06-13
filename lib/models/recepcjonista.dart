@@ -15,6 +15,6 @@ class Recepcjonista extends Uzytkownik {
   final String rodzajZmian;
 
   int getIdPracownika() {
-    throw NotImplementedError('Metoda nie została jeszcze zaimplementowana');
+     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
   }
 }

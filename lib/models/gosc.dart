@@ -13,6 +13,6 @@ class Gosc extends Uzytkownik {
   int iloscPunktowLojalnosciowych;
 
   void dodajPunktyLojalnosciowe(int punkty) {
-      throw NotImplementedError('Metoda nie została jeszcze zaimplementowana');
+       throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
   }
 }

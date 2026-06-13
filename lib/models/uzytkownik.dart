@@ -14,10 +14,10 @@ abstract class Uzytkownik {
   final String nrTelefonu;
 
   int getIdUzytkownika() {
-    throw NotImplementedError('Metoda nie została jeszcze zaimplementowana');
+     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
   }
 
   String getInformacjeKontaktowe() {
-    throw NotImplementedError('Metoda nie została jeszcze zaimplementowana');
+     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
   }
 }

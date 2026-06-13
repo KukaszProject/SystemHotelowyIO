@@ -1876,3 +1876,405 @@ class _Sheet extends StatelessWidget {
     );
   }
 }
+
+class _DateButton extends StatelessWidget {
+  const _DateButton({
+    required this.label,
+    required this.date,
+    required this.onPicked,
+  });
+
+  final String label;
+  final DateTime date;
+  final ValueChanged<DateTime> onPicked;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: () async {
+        final picked = await showDatePicker(
+          context: context,
+          initialDate: date,
+          firstDate: _today(),
+          lastDate: DateTime(2028),
+        );
+        if (picked != null) {
+          onPicked(picked);
+        }
+      },
+      icon: const Icon(Icons.calendar_month_rounded),
+      label: Text('$label ${_formatDate(date)}'),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({
+    required this.title,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final String title;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF3A2922),
+            ),
+          ),
+        ),
+        if (actionLabel != null)
+          TextButton(
+            onPressed: onAction,
+            child: Text(actionLabel!),
+          ),
+      ],
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({
+    required this.text,
+    required this.color,
+  });
+
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+class _IconText extends StatelessWidget {
+  const _IconText({
+    required this.icon,
+    required this.text,
+  });
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16, color: const Color(0xFF6F8F83)),
+        const SizedBox(width: 5),
+        Text(
+          text,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: const Color(0xFF6E5D52),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _EmptyCard extends StatelessWidget {
+  const _EmptyCard({
+    required this.icon,
+    required this.title,
+  });
+
+  final IconData icon;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: SizedBox(
+        width: double.infinity,
+        height: 150,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 34, color: const Color(0xFF6F8F83)),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PermissionCard extends StatelessWidget {
+  const _PermissionCard({
+    required this.role,
+    required this.user,
+  });
+
+  final _AccountRole role;
+  final Uzytkownik user;
+
+  @override
+  Widget build(BuildContext context) {
+    final permissions = switch (role) {
+      _AccountRole.gosc => const [
+        'Przegladanie pokoi',
+        'Rezerwacja pokoju',
+        'Platnosc za rezerwacje',
+        'Zameldowanie i wymeldowanie',
+        'Anulowanie rezerwacji',
+        'Ocena pobytu',
+      ],
+      _AccountRole.recepcjonista => const [
+        'Modyfikacja dat rezerwacji',
+        'Zmiana statusu pokoju',
+      ],
+    };
+    final employeeInfo = user is Recepcjonista
+        ? 'Pracownik #${(user as Recepcjonista).idPracownika}'
+        : 'Klient #${user.idUzytkownika}';
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFECE1D4),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    role == _AccountRole.gosc
+                        ? Icons.person_rounded
+                        : Icons.badge_rounded,
+                    color: const Color(0xFF5B4033),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${user.imie} ${user.nazwisko}',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                      Text(
+                        employeeInfo,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: const Color(0xFF75665B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: 28),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: permissions
+                  .map(
+                    (permission) => Chip(
+                      avatar: const Icon(Icons.check_rounded, size: 18),
+                      label: Text(permission),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReservationDraft {
+  const _ReservationDraft({
+    required this.guest,
+    required this.room,
+    required this.startDate,
+    required this.endDate,
+  });
+
+  final Gosc guest;
+  final Pokoj room;
+  final DateTime startDate;
+  final DateTime endDate;
+}
+
+class _DateRangeDraft {
+  const _DateRangeDraft({
+    required this.startDate,
+    required this.endDate,
+  });
+
+  final DateTime startDate;
+  final DateTime endDate;
+}
+
+class _ReviewDraft {
+  const _ReviewDraft({
+    required this.stars,
+    required this.comment,
+  });
+
+  final int stars;
+  final String comment;
+}
+
+String _formatDate(DateTime date) {
+  return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+}
+
+DateTime _today() {
+  final now = DateTime.now();
+  return DateTime(now.year, now.month, now.day);
+}
+
+_RoomRating _roomRating(Pokoj room, List<Rezerwacja> reservations) {
+  final ratings = reservations
+      .where((reservation) {
+        return reservation.pokoje.any((reservedRoom) {
+          return reservedRoom.idPokoju == room.idPokoju;
+        });
+      })
+      .map((reservation) => reservation.ocenaPobytu)
+      .whereType<OcenaPobytu>()
+      .toList();
+
+  if (ratings.isEmpty) {
+    return const _RoomRating(average: 0, count: 0);
+  }
+
+  final sum = ratings.fold<int>(
+    0,
+    (total, rating) => total + rating.liczbaGwiazdek,
+  );
+  return _RoomRating(average: sum / ratings.length, count: ratings.length);
+}
+
+OcenaPobytu? _latestRoomReview(Pokoj room, List<Rezerwacja> reservations) {
+  final ratings =
+      reservations
+          .where((reservation) {
+            return reservation.pokoje.any((reservedRoom) {
+              return reservedRoom.idPokoju == room.idPokoju;
+            });
+          })
+          .map((reservation) => reservation.ocenaPobytu)
+          .whereType<OcenaPobytu>()
+          .toList()
+        ..sort((a, b) => b.dataDodania.compareTo(a.dataDodania));
+
+  return ratings.firstOrNull;
+}
+
+class _RoomRating {
+  const _RoomRating({
+    required this.average,
+    required this.count,
+  });
+
+  final double average;
+  final int count;
+}
+
+String _formatMoney(double value) {
+  return '${value.toStringAsFixed(0)} zl';
+}
+
+String _roomStatusLabel(StatusPokoju status) {
+  return switch (status) {
+    StatusPokoju.dostepny => 'Dostepny',
+    StatusPokoju.zajety => 'Zajety',
+    StatusPokoju.czyszczenie => 'Czyszczenie',
+    StatusPokoju.wylaczony => 'Wylaczony',
+  };
+}
+
+String? _roomUnavailableReason({
+  required Pokoj room,
+  required DateTime startDate,
+  required DateTime endDate,
+  required int guestCount,
+}) {
+  if (room.pojemnoscPokoju < guestCount) {
+    return 'Do ${room.pojemnoscPokoju} os.';
+  }
+
+  if (room.statusPokoju == StatusPokoju.czyszczenie ||
+      room.statusPokoju == StatusPokoju.wylaczony) {
+    return _roomStatusLabel(room.statusPokoju);
+  }
+
+  if (!room.czyDostepny(startDate, endDate)) {
+    return 'Zajety termin';
+  }
+
+  return null;
+}
+
+String _reservationStatusLabel(StatusRezerwacji status) {
+  return switch (status) {
+    StatusRezerwacji.oczekujaca => 'Oczekujaca',
+    StatusRezerwacji.potwierdzona => 'Potwierdzona',
+    StatusRezerwacji.anulowana => 'Anulowana',
+    StatusRezerwacji.aktywna => 'Aktywna',
+    StatusRezerwacji.zakonczona => 'Zakonczona',
+  };
+}
+
+Color _reservationStatusColor(StatusRezerwacji status) {
+  return switch (status) {
+    StatusRezerwacji.oczekujaca => const Color(0xFF9A6B35),
+    StatusRezerwacji.potwierdzona => const Color(0xFF4E7B63),
+    StatusRezerwacji.anulowana => const Color(0xFF8B4C4C),
+    StatusRezerwacji.aktywna => const Color(0xFF6E7794),
+    StatusRezerwacji.zakonczona => const Color(0xFF5B4033),
+  };
+}
+
+List<Color> _roomVisualColors(int roomNumber) {
+  return switch (roomNumber % 4) {
+    0 => const [Color(0xFF5B4033), Color(0xFF9C7B62)],
+    1 => const [Color(0xFF6F8F83), Color(0xFFB7C9BD)],
+    2 => const [Color(0xFF6E7794), Color(0xFFB8C0D3)],
+    _ => const [Color(0xFF8A5A44), Color(0xFFD0B09A)],
+  };
+}

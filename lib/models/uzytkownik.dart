@@ -14,10 +14,10 @@ abstract class Uzytkownik {
   final String nrTelefonu;
 
   int getIdUzytkownika() {
-    return idUzytkownika;
+    throw NotImplementedError('Metoda nie została jeszcze zaimplementowana');
   }
 
   String getInformacjeKontaktowe() {
-    return '$email, $nrTelefonu';
+    throw NotImplementedError('Metoda nie została jeszcze zaimplementowana');
   }
 }

@@ -20,20 +20,20 @@ class Pokoj {
   final List<Rezerwacja> rezerwacje;
 
   double obliczKoszt(int iloscDni) {
-     throw NotImplementedError('Metoda nie została jeszcze zaimplementowana');
+     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
   }
 
   void zmienStatus(StatusPokoju nowyStatus) {
-     throw NotImplementedError('Metoda nie została jeszcze zaimplementowana');
+     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
   }
 
   bool czyDostepny(DateTime dataPoczatkowa, DateTime dataKoncowa) {
-     throw NotImplementedError('Metoda nie została jeszcze zaimplementowana');
+     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
     }
 
 
   bool _blokujeDostepnosc(Rezerwacja rezerwacja) {
-    throw NotImplementedError('Metoda nie została jeszcze zaimplementowana');
+     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
   }
 
   bool _terminySiePokrywaja(
@@ -42,6 +42,6 @@ class Pokoj {
     DateTime poczatekB,
     DateTime koniecB,
   ) {
-     throw NotImplementedError('Metoda nie została jeszcze zaimplementowana');
+     throw UnimplementedError('Metoda nie została jeszcze zaimplementowana');
   }
 }

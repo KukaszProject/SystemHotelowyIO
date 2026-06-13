@@ -373,3 +373,102 @@ class _HotelDashboardScreenState extends State<HotelDashboardScreen> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 }
+
+enum _AccountRole { gosc, recepcjonista }
+
+class _HomePage extends StatelessWidget {
+  const _HomePage({
+    required this.controller,
+    required this.startDate,
+    required this.endDate,
+    required this.guestCount,
+    required this.onFiltersChanged,
+    required this.onReserve,
+    required this.onOpenRooms,
+  });
+
+  final HotelController controller;
+  final DateTime startDate;
+  final DateTime endDate;
+  final int guestCount;
+  final void Function(DateTime startDate, DateTime endDate, int guestCount)
+  onFiltersChanged;
+  final VoidCallback onReserve;
+  final VoidCallback onOpenRooms;
+
+  @override
+  Widget build(BuildContext context) {
+    final availableRooms = controller.znajdzDostepnePokoje(
+      dataPoczatkowa: startDate,
+      dataKoncowa: endDate,
+      liczbaGosci: guestCount,
+    );
+    final reservations = controller.rezerwacje;
+
+    return _Page(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _HeroPanel(
+            onReserve: onReserve,
+            onOpenRooms: onOpenRooms,
+          ),
+          const SizedBox(height: 18),
+          _BookingCard(
+            startDate: startDate,
+            endDate: endDate,
+            guestCount: guestCount,
+            onChanged: onFiltersChanged,
+            onSearch: onOpenRooms,
+          ),
+          const SizedBox(height: 22),
+          _SectionTitle(
+            title: 'Polecane pokoje',
+            actionLabel: 'Zobacz wszystkie',
+            onAction: onOpenRooms,
+          ),
+          const SizedBox(height: 12),
+          if (availableRooms.isEmpty)
+            const _EmptyCard(
+              icon: Icons.king_bed_outlined,
+              title: 'Brak pokoi w tym terminie',
+            )
+          else
+            SizedBox(
+              height: 288,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: availableRooms.take(3).length,
+                separatorBuilder: (_, _) => const SizedBox(width: 14),
+                itemBuilder: (context, index) {
+                  final room = availableRooms[index];
+                  return SizedBox(
+                    width: 290,
+                    child: _RoomOfferCard(
+                      room: room,
+                      available: true,
+                      unavailableReason: null,
+                      rating: _roomRating(room, reservations),
+                      role: _AccountRole.gosc,
+                      onReserve: () => onReserve(),
+                      onStatusChanged: (_) {},
+                    ),
+                  );
+                },
+              ),
+            ),
+          const SizedBox(height: 24),
+          _SectionTitle(title: 'Twoj pobyt'),
+          const SizedBox(height: 12),
+          if (reservations.isEmpty)
+            const _EmptyCard(
+              icon: Icons.luggage_outlined,
+              title: 'Nie masz jeszcze rezerwacji',
+            )
+          else
+            _StaySummaryCard(reservation: reservations.last),
+        ],
+      ),
+    );
+  }
+}

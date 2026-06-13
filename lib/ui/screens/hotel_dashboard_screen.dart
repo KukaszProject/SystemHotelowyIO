@@ -861,3 +861,275 @@ class _RoomsPage extends StatelessWidget {
     );
   }
 }
+
+class _StayPage extends StatelessWidget {
+  const _StayPage({
+    required this.controller,
+    required this.role,
+    required this.onPay,
+    required this.onCheckIn,
+    required this.onCheckOut,
+    required this.onCancel,
+    required this.onReview,
+    required this.onModifyDates,
+  });
+
+  final HotelController controller;
+  final _AccountRole role;
+  final void Function(Rezerwacja reservation) onPay;
+  final void Function(Rezerwacja reservation) onCheckIn;
+  final void Function(Rezerwacja reservation) onCheckOut;
+  final void Function(Rezerwacja reservation) onCancel;
+  final void Function(Rezerwacja reservation) onReview;
+  final void Function(Rezerwacja reservation) onModifyDates;
+
+  @override
+  Widget build(BuildContext context) {
+    final reservations = controller.rezerwacje;
+    final isReception = role == _AccountRole.recepcjonista;
+
+    return _Page(
+      title: isReception ? 'Rezerwacje' : 'Pobyt',
+      subtitle: isReception
+          ? 'Zmiana terminow rezerwacji'
+          : 'Rezerwacje, platnosci i opinie',
+      child: reservations.isEmpty
+          ? const _EmptyCard(
+              icon: Icons.luggage_outlined,
+              title: 'Brak aktywnych rezerwacji',
+            )
+          : Column(
+              children: reservations.reversed
+                  .map(
+                    (reservation) => Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: _ReservationCard(
+                        reservation: reservation,
+                        role: role,
+                        onPay: () => onPay(reservation),
+                        onCheckIn: () => onCheckIn(reservation),
+                        onCheckOut: () => onCheckOut(reservation),
+                        onCancel: () => onCancel(reservation),
+                        onReview: () => onReview(reservation),
+                        onModifyDates: () => onModifyDates(reservation),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+    );
+  }
+}
+
+class _Page extends StatelessWidget {
+  const _Page({
+    required this.child,
+    this.title,
+    this.subtitle,
+  });
+
+  final String? title;
+  final String? subtitle;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 980),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (title != null) ...[
+                    Text(
+                      title!,
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF3A2922),
+                          ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle!,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: const Color(0xFF75665B),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 18),
+                  ],
+                  child,
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HeroPanel extends StatelessWidget {
+  const _HeroPanel({
+    required this.onReserve,
+    required this.onOpenRooms,
+  });
+
+  final VoidCallback onReserve;
+  final VoidCallback onOpenRooms;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF5B4033),
+            Color(0xFF7A5A45),
+            Color(0xFF6F8F83),
+          ],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.spa_rounded, color: Colors.white, size: 34),
+          const SizedBox(height: 28),
+          Text(
+            'Spokojny pobyt blisko miasta',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+              height: 1.05,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Zarezerwuj pokoj, oplac pobyt i zarzadzaj rezerwacja w jednym miejscu.',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: Colors.white.withValues(alpha: 0.88),
+            ),
+          ),
+          const SizedBox(height: 22),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              FilledButton.icon(
+                onPressed: onReserve,
+                icon: const Icon(Icons.add_rounded),
+                label: const Text('Zarezerwuj'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: const Color(0xFF5B4033),
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: onOpenRooms,
+                icon: const Icon(Icons.king_bed_rounded),
+                label: const Text('Pokoje'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: BorderSide(color: Colors.white.withValues(alpha: 0.55)),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BookingCard extends StatelessWidget {
+  const _BookingCard({
+    required this.startDate,
+    required this.endDate,
+    required this.guestCount,
+    required this.onChanged,
+    required this.onSearch,
+  });
+
+  final DateTime startDate;
+  final DateTime endDate;
+  final int guestCount;
+  final void Function(DateTime startDate, DateTime endDate, int guestCount)
+  onChanged;
+  final VoidCallback onSearch;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Szukaj pobytu',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                _DateButton(
+                  label: 'Od',
+                  date: startDate,
+                  onPicked: (date) => onChanged(date, endDate, guestCount),
+                ),
+                _DateButton(
+                  label: 'Do',
+                  date: endDate,
+                  onPicked: (date) => onChanged(startDate, date, guestCount),
+                ),
+                SizedBox(
+                  width: 150,
+                  child: DropdownButtonFormField<int>(
+                    initialValue: guestCount,
+                    decoration: const InputDecoration(
+                      labelText: 'Goscie',
+                      prefixIcon: Icon(Icons.group_rounded),
+                    ),
+                    items: [1, 2, 3, 4]
+                        .map(
+                          (count) => DropdownMenuItem(
+                            value: count,
+                            child: Text('$count'),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        onChanged(startDate, endDate, value);
+                      }
+                    },
+                  ),
+                ),
+                FilledButton.icon(
+                  onPressed: onSearch,
+                  icon: const Icon(Icons.search_rounded),
+                  label: const Text('Szukaj'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

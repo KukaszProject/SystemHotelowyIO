@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:systemhotelowy/data/lokalne_repozytorium_hotelu.dart';
 import 'package:systemhotelowy/enums/status_pokoju.dart';
 import 'package:systemhotelowy/enums/status_rezerwacji.dart';
 import 'package:systemhotelowy/models/gosc.dart';

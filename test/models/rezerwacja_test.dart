@@ -2,7 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:systemhotelowy/enums/status_pokoju.dart';
 import 'package:systemhotelowy/enums/status_rezerwacji.dart';
 import 'package:systemhotelowy/fakes/fake_system_platnosci.dart';
+import 'package:systemhotelowy/models/gosc.dart';
 import 'package:systemhotelowy/models/ocena_pobytu.dart';
+import 'package:systemhotelowy/models/platnosc.dart';
+import 'package:systemhotelowy/models/pokoj.dart';
 import 'package:systemhotelowy/models/rezerwacja.dart';
 
 void main() {

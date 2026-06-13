@@ -666,3 +666,198 @@ class _ReceptionActionCard extends StatelessWidget {
     );
   }
 }
+
+class _ReceptionRoomSummary extends StatelessWidget {
+  const _ReceptionRoomSummary({required this.rooms});
+
+  final List<Pokoj> rooms;
+
+  @override
+  Widget build(BuildContext context) {
+    int count(StatusPokoju status) {
+      return rooms.where((room) => room.statusPokoju == status).length;
+    }
+
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: StatusPokoju.values.map((status) {
+        return _StatusPill(
+          text: '${_roomStatusLabel(status)}: ${count(status)}',
+          color: status == StatusPokoju.dostepny
+              ? const Color(0xFF4E7B63)
+              : const Color(0xFF8B4C4C),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _RoomReviewsOverview extends StatelessWidget {
+  const _RoomReviewsOverview({
+    required this.rooms,
+    required this.reservations,
+  });
+
+  final List<Pokoj> rooms;
+  final List<Rezerwacja> reservations;
+
+  @override
+  Widget build(BuildContext context) {
+    final ratedRooms = rooms
+        .map((room) => (room: room, rating: _roomRating(room, reservations)))
+        .where((item) => item.rating.count > 0)
+        .toList();
+
+    if (ratedRooms.isEmpty) {
+      return const _EmptyCard(
+        icon: Icons.star_outline_rounded,
+        title: 'Brak ocen pokoi',
+      );
+    }
+
+    return Column(
+      children: ratedRooms.map((item) {
+        final latestReview = _latestRoomReview(item.room, reservations);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFECE1D4),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.star_rounded,
+                      color: Color(0xFF5B4033),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Pokoj ${item.room.nrPokoju}',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.w800,
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${item.rating.average.toStringAsFixed(1)}/5 z ${item.rating.count} ocen',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        if (latestReview != null) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            latestReview.komentarz,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: const Color(0xFF75665B),
+                                ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _RoomsPage extends StatelessWidget {
+  const _RoomsPage({
+    required this.controller,
+    required this.startDate,
+    required this.endDate,
+    required this.guestCount,
+    required this.role,
+    required this.onFiltersChanged,
+    required this.onSearch,
+    required this.onReserve,
+    required this.onStatusChanged,
+  });
+
+  final HotelController controller;
+  final DateTime startDate;
+  final DateTime endDate;
+  final int guestCount;
+  final _AccountRole role;
+  final void Function(DateTime startDate, DateTime endDate, int guestCount)
+  onFiltersChanged;
+  final VoidCallback onSearch;
+  final void Function(Pokoj room) onReserve;
+  final void Function(Pokoj room, StatusPokoju status) onStatusChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final rooms = controller.repozytorium.pokoje;
+    final availableRooms = controller.znajdzDostepnePokoje(
+      dataPoczatkowa: startDate,
+      dataKoncowa: endDate,
+      liczbaGosci: guestCount,
+    );
+    final isReception = role == _AccountRole.recepcjonista;
+
+    return _Page(
+      title: isReception ? 'Zarzadzanie pokojami' : 'Pokoje',
+      subtitle: isReception
+          ? 'Statusy pokoi wedlug pracy recepcji'
+          : 'Wybierz pokoj dopasowany do pobytu',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (isReception) ...[
+            _ReceptionRoomSummary(rooms: rooms),
+            const SizedBox(height: 20),
+          ] else ...[
+            _BookingCard(
+              startDate: startDate,
+              endDate: endDate,
+              guestCount: guestCount,
+              onChanged: onFiltersChanged,
+              onSearch: onSearch,
+            ),
+            const SizedBox(height: 20),
+          ],
+          ...rooms.map(
+            (room) => Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: SizedBox(
+                height: role == _AccountRole.recepcjonista ? 336 : 278,
+                child: _RoomOfferCard(
+                  room: room,
+                  available: availableRooms.contains(room),
+                  unavailableReason: _roomUnavailableReason(
+                    room: room,
+                    startDate: startDate,
+                    endDate: endDate,
+                    guestCount: guestCount,
+                  ),
+                  rating: _roomRating(room, controller.rezerwacje),
+                  role: role,
+                  onReserve: () => onReserve(room),
+                  onStatusChanged: (status) => onStatusChanged(room, status),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
